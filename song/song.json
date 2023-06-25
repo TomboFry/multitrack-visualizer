@@ -1,0 +1,68 @@
+{
+	"render_images": true,
+	"channels": [
+		{
+			"name": "DRUMS",
+			"file": "./song/motl_Drums.wav",
+			"colour": [
+				210,
+				46,
+				38
+			]
+		},
+		{
+			"name": "BASS",
+			"file": "./song/motl_Bass Bus.wav",
+			"colour": [
+				140,
+				30,
+				220
+			]
+		},
+		{
+			"name": "GUITAR - ELECTRIC",
+			"file": "./song/motl_Gtr Elec.wav",
+			"colour": [
+				55,
+				74,
+				228
+			]
+		},
+		{
+			"name": "GUITAR - ACOUSTIC",
+			"file": "./song/motl_Gtr Acoustic.wav",
+			"colour": [
+				55,
+				74,
+				228
+			]
+		},
+		{
+			"name": "SYNTH",
+			"file": "./song/motl_EPiano.wav",
+			"colour": [
+				107,
+				163,
+				66
+			]
+		},
+		{
+			"name": "VOCALS",
+			"file": "./song/motl_Vox.wav",
+			"colour": [
+				230,
+				128,
+				48
+			]
+		},
+		{
+			"name": "BACKING VOCALS",
+			"file": "./song/motl_Vox Backing.wav",
+			"colour": [
+				230,
+				128,
+				48
+			]
+		}
+	]
+}
