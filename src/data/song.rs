@@ -198,42 +198,42 @@ impl Song {
 
 		let rows = self.channels.chunks_mut(cols);
 
-		let elm_height = *SCREEN_HEIGHT as usize / rows.len();
-		let elm_width = *SCREEN_WIDTH as usize / cols;
+		let channel_height = *SCREEN_HEIGHT as usize / rows.len();
+		let channel_width = *SCREEN_WIDTH as usize / cols;
 
 		for (row, chunks) in rows.enumerate() {
-			let y_off = elm_height * row;
+			let y_offset = channel_height * row;
 
 			for (col, channel) in chunks.iter_mut().enumerate() {
-				let x_off = elm_width * col;
+				let x_offset = channel_width * col;
 
 				// Background Colour
 				draw::rect(
 					frame,
-					x_off,
-					y_off,
-					x_off + elm_width - 1,
-					y_off + elm_height - 1,
+					x_offset,
+					y_offset,
+					x_offset + channel_width - 1,
+					y_offset + channel_height - 1,
 					channel.colour,
 				);
 
 				// Channel Name
-				draw::text(frame, x_off + 4, y_off + 4, &channel.name);
+				draw::text(frame, x_offset + 4, y_offset + 4, &channel.name);
 
 				// Draw samples
-
 				let raw_samples = channel.get_frame_samples();
 
 				// Resample raw vector by lerping between adjacent samples
-				let samples: Vec<u8> = (0..elm_width)
+				let samples: Vec<u8> = (0..channel_width)
 					.into_par_iter()
 					.map(|index| {
-						let pc = (index as f32 / elm_width as f32) * raw_samples.len() as f32;
-						let remainder = pc % 1.0;
-						let i_low = pc.floor() as usize;
-						let i_high = pc.ceil() as usize;
+						let percent =
+							(index as f32 / channel_width as f32) * raw_samples.len() as f32;
+						let remainder = percent % 1.0;
+						let i_low = percent.floor() as usize;
+						let i_high = percent.ceil() as usize;
 
-						// (1 - t) * v0 + t * v1;
+						// Lerp equation: (1 - t) * v0 + t * v1;
 						let value = (1.0 - remainder) * raw_samples[i_low] as f32
 							+ remainder * raw_samples[i_high] as f32;
 
@@ -246,26 +246,31 @@ impl Song {
 						continue;
 					}
 
-					let mut prev_y = (samples[x - 1] as usize * elm_height) / 256;
-					let mut sample_y = (*sample as usize * elm_height) / 256;
+					let mut y_previous = (samples[x - 1] as usize * channel_height) / 256;
+					let mut y_current = (*sample as usize * channel_height) / 256;
 
 					// Swap samples so it's always drawing downwards
-					if prev_y > sample_y {
-						(sample_y, prev_y) = (prev_y, sample_y);
+					if y_previous > y_current {
+						(y_current, y_previous) = (y_previous, y_current);
 					}
 
 					// Connect a line to the previous sample
 					draw::rect(
 						frame,
-						x_off + x - 1,
-						y_off + prev_y,
-						x_off + x,
-						y_off + sample_y,
+						x_offset + x - 1,
+						y_offset + y_previous,
+						x_offset + x,
+						y_offset + y_current,
 						[255, 255, 255],
 					);
 
 					// Draw the current sample
-					draw::pixel(frame, x_off + x - 1, y_off + sample_y, [255, 255, 255]);
+					draw::pixel(
+						frame,
+						x_offset + x - 1,
+						y_offset + y_current,
+						[255, 255, 255],
+					);
 				}
 			}
 		}
