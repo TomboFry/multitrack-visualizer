@@ -12,7 +12,6 @@ use symphonia::core::{
 	errors::Error,
 	formats::{FormatReader, Track},
 };
-use winit_input_helper::WinitInputHelper;
 
 #[derive(Deserialize)]
 pub struct Channel {
@@ -187,8 +186,6 @@ impl Song {
 		}
 	}
 
-	pub fn update(&mut self, _input: &WinitInputHelper) {}
-
 	pub fn draw(&mut self, frame: &mut [u8]) {
 		let cols = 2.min(self.channels.len());
 		let rows = self.channels.chunks_mut(cols);
@@ -220,7 +217,7 @@ impl Song {
 				let raw_samples = channel.get_frame_samples();
 
 				// Resample raw vector by lerping between adjacent samples
-				let samples: Vec<u8> = (0..elm_width)
+				let samples: Vec<u8> = (0..elm_width - 1)
 					.into_par_iter()
 					.map(|index| {
 						let pc = (index as f32 / elm_width as f32) * raw_samples.len() as f32;

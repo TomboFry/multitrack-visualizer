@@ -4,16 +4,16 @@ use super::{font::*, RGB};
 use rayon::prelude::*;
 
 /// Set every pixel on the screen to black. This task is parallelised
-pub fn clear(frame: &mut [u8]) {
+pub fn _clear(frame: &mut [u8]) {
 	frame.into_par_iter().for_each(|pixel| {
 		*pixel = 0x00;
 	});
 }
 
 /// Determine the index for any given point on the screen.
-/// This factors in the fact that each pixel uses 4 bytes for colour (rgba).
+/// This factors in the fact that each pixel uses 3 bytes for colour (RGB).
 fn get_index(x: usize, y: usize) -> usize {
-	(x + (y * *SCREEN_WIDTH as usize)) * 4
+	(x + (y * *SCREEN_WIDTH as usize)) * 3
 }
 
 /// Draw a single pixel, with a given colour, to the screen at a given point
@@ -27,7 +27,6 @@ pub fn pixel(frame: &mut [u8], x: usize, y: usize, colour: RGB) {
 	frame[idx] = colour[0];
 	frame[idx + 1] = colour[1];
 	frame[idx + 2] = colour[2];
-	frame[idx + 3] = 0xff;
 }
 
 /// Draw a single letter to the screen based on the blit32 font
