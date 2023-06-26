@@ -190,7 +190,12 @@ impl Song {
 	}
 
 	pub fn draw(&mut self, frame: &mut [u8]) {
-		let cols = 2.min(self.channels.len());
+		let cols = if *SCREEN_WIDTH >= *SCREEN_HEIGHT {
+			2.min(self.channels.len())
+		} else {
+			1
+		};
+
 		let rows = self.channels.chunks_mut(cols);
 
 		let elm_height = *SCREEN_HEIGHT as usize / rows.len();
@@ -220,7 +225,7 @@ impl Song {
 				let raw_samples = channel.get_frame_samples();
 
 				// Resample raw vector by lerping between adjacent samples
-				let samples: Vec<u8> = (0..elm_width - 1)
+				let samples: Vec<u8> = (0..elm_width)
 					.into_par_iter()
 					.map(|index| {
 						let pc = (index as f32 / elm_width as f32) * raw_samples.len() as f32;
@@ -254,7 +259,7 @@ impl Song {
 						frame,
 						x_off + x - 1,
 						y_off + prev_y,
-						x_off + x + 1,
+						x_off + x,
 						y_off + sample_y,
 						[255, 255, 255],
 					);
