@@ -1,7 +1,7 @@
 use super::{image::pixels_to_png, track::load_track_into_memory};
 use crate::{
 	display::{draw, RGB},
-	SCREEN_HEIGHT, SCREEN_WIDTH,
+	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 use rayon::prelude::*;
 use serde::Deserialize;
@@ -40,7 +40,9 @@ impl Channel {
 		let format = self.format.as_mut().unwrap();
 		let track = self.track.as_mut().unwrap();
 		let decoder = self.decoder.as_mut().unwrap();
-		let min_samples_required = track.codec_params.sample_rate.unwrap() as usize / 60;
+		let min_samples_required =
+			(track.codec_params.sample_rate.unwrap() / *SCREEN_FRAME_RATE) as usize;
+
 		let mut retries = 100;
 
 		if self.buffer.capacity() < min_samples_required {
@@ -132,6 +134,7 @@ pub struct Window {
 	pub width: u32,
 	pub height: u32,
 	pub scale: u32,
+	pub frame_rate: u32,
 }
 
 impl Window {

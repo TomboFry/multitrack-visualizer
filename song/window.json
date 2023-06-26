@@ -1,5 +1,6 @@
 {
 	"width": 480,
 	"height": 270,
-	"scale": 4
+	"scale": 4,
+	"frame_rate": 30
 }

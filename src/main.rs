@@ -12,6 +12,7 @@ lazy_static! {
 	pub static ref SCREEN_WIDTH: u32 = WINDOW.width;
 	pub static ref SCREEN_HEIGHT: u32 = WINDOW.height;
 	pub static ref SCREEN_SCALE: u32 = WINDOW.scale;
+	pub static ref SCREEN_FRAME_RATE: u32 = WINDOW.frame_rate;
 }
 
 fn main() {
