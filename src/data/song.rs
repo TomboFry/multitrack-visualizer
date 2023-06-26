@@ -223,19 +223,34 @@ impl Song {
 				// Draw samples
 				let raw_samples = channel.get_frame_samples();
 
+				// Determine a good start sample
+				// Loop through the first 10% of samples and find a significant jump in the signal
+				let mut start_sample = 0;
+
+				for x in 0..raw_samples.len() / 10 {
+					let y_previous = raw_samples[x] as i16;
+					let y_current = raw_samples[x + 1] as i16;
+					let diff = y_previous - y_current;
+
+					if diff >= 10 {
+						start_sample = x;
+						break;
+					}
+				}
+
 				// Resample raw vector by lerping between adjacent samples
 				let samples: Vec<u8> = (0..channel_width)
 					.into_par_iter()
 					.map(|index| {
-						let percent =
-							(index as f32 / channel_width as f32) * raw_samples.len() as f32;
+						let percent = (index as f32 / channel_width as f32)
+							* (raw_samples.len() - start_sample) as f32;
 						let remainder = percent % 1.0;
 						let i_low = percent.floor() as usize;
 						let i_high = percent.ceil() as usize;
 
 						// Lerp equation: (1 - t) * v0 + t * v1;
-						let value = (1.0 - remainder) * raw_samples[i_low] as f32
-							+ remainder * raw_samples[i_high] as f32;
+						let value = (1.0 - remainder) * raw_samples[start_sample + i_low] as f32
+							+ remainder * raw_samples[start_sample + i_high] as f32;
 
 						value as u8
 					})
