@@ -21,8 +21,10 @@ pub fn clear_output_folder() -> std::io::Result<()> {
 
 	for path in paths {
 		let p = &path?;
-		if p.path().ends_with(".png") {
-			std::fs::remove_file(p.path())?;
+		if let Some(ext) = p.path().extension() {
+			if ext == "png" {
+				std::fs::remove_file(p.path())?;
+			}
 		}
 	}
 
