@@ -26,8 +26,14 @@ fn main() {
 	let size = (*SCREEN_WIDTH * *SCREEN_HEIGHT * 3) as usize;
 	let mut frame = (0..size).map(|_| 0).collect::<Vec<u8>>();
 
-	// TODO: Get status from song to end loop gracefully
 	loop {
-		song.draw(&mut frame);
+		let result = song.draw(&mut frame);
+
+		if result.is_err() {
+			println!("{:?}", result.err().unwrap());
+			break;
+		}
 	}
+
+	// Step 3: Save PNGs to video?
 }

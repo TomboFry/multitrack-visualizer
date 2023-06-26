@@ -19,6 +19,6 @@ and different from my usual screen capture of FL Studio.
 * [x] Specify colours and titles for each track
 * [x] Change display size via config
 * [x] Render individual frames to PNG
+* [x] Handle errors properly!!!
+* [x] Change columns depending on aspect ratio (eg. for vertical video)
 * [ ] Render entire sequence to MP4
-* [ ] Handle errors properly!!!
-* [ ] Change columns depending on aspect ratio (eg. for vertical video)

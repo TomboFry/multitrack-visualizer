@@ -35,8 +35,14 @@ pub struct Channel {
 	pub play_time_samples: u64,
 }
 
+#[derive(Debug)]
+pub enum SongError {
+	Error(symphonia::core::errors::Error),
+	End,
+}
+
 impl Channel {
-	pub fn get_frame_samples(&mut self) -> Vec<u8> {
+	pub fn get_frame_samples(&mut self) -> Result<Vec<u8>, SongError> {
 		let format = self.format.as_mut().unwrap();
 		let track = self.track.as_mut().unwrap();
 		let decoder = self.decoder.as_mut().unwrap();
@@ -61,13 +67,13 @@ impl Channel {
 					if self.play_time_samples
 						>= track.codec_params.n_frames.unwrap() - min_samples_required as u64
 					{
-						panic!("End of song")
+						return Err(SongError::End);
 					}
 					continue;
 				}
 				Err(err) => {
 					// A unrecoverable error occured, halt decoding.
-					panic!("{}", err);
+					return Err(SongError::Error(err));
 				}
 			};
 
@@ -118,14 +124,14 @@ impl Channel {
 				}
 				Err(err) => {
 					// An unrecoverable error occured, halt decoding.
-					panic!("{}", err);
+					return Err(SongError::Error(err));
 				}
 			}
 		}
 
 		self.play_time_samples += min_samples_required as u64;
 
-		self.buffer.drain(0..min_samples_required).collect()
+		Ok(self.buffer.drain(0..min_samples_required).collect())
 	}
 }
 
@@ -189,7 +195,7 @@ impl Song {
 		}
 	}
 
-	pub fn draw(&mut self, frame: &mut [u8]) {
+	pub fn draw(&mut self, frame: &mut [u8]) -> Result<(), SongError> {
 		let cols = if *SCREEN_WIDTH >= *SCREEN_HEIGHT {
 			2.min(self.channels.len())
 		} else {
@@ -222,6 +228,12 @@ impl Song {
 
 				// Draw samples
 				let raw_samples = channel.get_frame_samples();
+
+				if let Err(err) = raw_samples {
+					return Err(err);
+				}
+
+				let raw_samples = raw_samples.unwrap();
 
 				// Determine a good start sample
 				// Loop through the first 10% of samples and find a significant jump in the signal
@@ -294,5 +306,7 @@ impl Song {
 			pixels_to_png(frame, &format!("./output/{}.png", self.frame));
 			self.frame += 1;
 		}
+
+		Ok(())
 	}
 }
