@@ -18,6 +18,9 @@ use symphonia::core::{
 pub struct Channel {
 	pub name: String,
 	pub file: String,
+
+	/// Colour is optional, and will default to black, ie. [0,0,0]
+	#[serde(default)]
 	pub colour: RGB,
 
 	#[serde(skip)]

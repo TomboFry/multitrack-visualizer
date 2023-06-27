@@ -30,7 +30,8 @@ Options:
 * `channels`, an array of objects, where:
   * `name` is the channel name, displayed on screen
   * `file` is a path name to the audio file, and
-  * `colour` contains the Red, Green, and Blue colour values (0-255).
+  * `colour` (optional) - contains the Red, Green, and Blue colour values
+    (0-255). Defaults to black, ie. `[0, 0, 0]`
 * `video_file_out` is a path name to the video that will be output.
 
 ```json
