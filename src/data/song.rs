@@ -1,9 +1,12 @@
-use super::{image::pixels_to_png, track::load_track_into_memory};
+use super::track::load_track_into_memory;
 use crate::{
 	display::{draw, RGB},
-	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH,
+	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_SCALE, SCREEN_WIDTH,
 };
+use image::RgbImage;
+use ndarray::Array3;
 use rayon::prelude::*;
+use rgb::FromSlice;
 use serde::Deserialize;
 use std::{collections::VecDeque, fs::File, io::BufReader};
 use symphonia::core::{
@@ -12,6 +15,7 @@ use symphonia::core::{
 	errors::Error,
 	formats::{FormatReader, Track},
 };
+use video_rs::{Encoder, Time};
 
 #[derive(Deserialize)]
 pub struct Channel {
@@ -47,7 +51,7 @@ impl Channel {
 		let track = self.track.as_mut().unwrap();
 		let decoder = self.decoder.as_mut().unwrap();
 		let min_samples_required =
-			(track.codec_params.sample_rate.unwrap() / *SCREEN_FRAME_RATE) as usize;
+			track.codec_params.sample_rate.unwrap() as usize / *SCREEN_FRAME_RATE;
 
 		let mut retries = 100;
 
@@ -140,7 +144,7 @@ pub struct Window {
 	pub width: u32,
 	pub height: u32,
 	pub scale: u32,
-	pub frame_rate: u32,
+	pub frame_rate: usize,
 }
 
 impl Window {
@@ -161,7 +165,7 @@ impl Window {
 #[derive(Deserialize)]
 pub struct Song {
 	pub channels: Vec<Channel>,
-	pub render_images: bool,
+	pub video_file_out: String,
 
 	#[serde(skip)]
 	pub frame: usize,
@@ -195,7 +199,12 @@ impl Song {
 		}
 	}
 
-	pub fn draw(&mut self, frame: &mut [u8]) -> Result<(), SongError> {
+	pub fn draw(
+		&mut self,
+		frame: &mut RgbImage,
+		encoder: &mut Encoder,
+		position: &mut Time,
+	) -> Result<(), SongError> {
 		let cols = if *SCREEN_WIDTH >= *SCREEN_HEIGHT {
 			2.min(self.channels.len())
 		} else {
@@ -204,16 +213,24 @@ impl Song {
 
 		let rows = self.channels.chunks_mut(cols);
 
-		let channel_height = *SCREEN_HEIGHT as usize / rows.len();
-		let channel_width = *SCREEN_WIDTH as usize / cols;
+		let channel_height = *SCREEN_HEIGHT / rows.len() as u32;
+		let channel_width = *SCREEN_WIDTH / cols as u32;
 
 		for (row, chunks) in rows.enumerate() {
-			let y_offset = channel_height * row;
+			let y_offset = channel_height * row as u32;
 
 			for (col, channel) in chunks.iter_mut().enumerate() {
-				let x_offset = channel_width * col;
+				let x_offset = channel_width * col as u32;
 
 				// Background Colour
+				draw::rect(
+					frame,
+					x_offset,
+					y_offset + channel_height - 1,
+					x_offset + channel_width - 1,
+					y_offset + channel_height,
+					[0, 0, 0],
+				);
 				draw::rect(
 					frame,
 					x_offset,
@@ -236,10 +253,10 @@ impl Song {
 				let raw_samples = raw_samples.unwrap();
 
 				// Determine a good start sample
-				// Loop through the first 10% of samples and find a significant jump in the signal
+				// Loop through the first ~6% of samples and find a significant jump in the signal
 				let mut start_sample = 0;
 
-				for x in 0..raw_samples.len() / 10 {
+				for x in 0..raw_samples.len() / 15 {
 					let y_previous = raw_samples[x] as i16;
 					let y_current = raw_samples[x + 1] as i16;
 					let diff = y_previous - y_current;
@@ -273,8 +290,10 @@ impl Song {
 						continue;
 					}
 
-					let mut y_previous = (samples[x - 1] as usize * channel_height) / 256;
-					let mut y_current = (*sample as usize * channel_height) / 256;
+					let x_position = x_offset + x as u32;
+
+					let mut y_previous = (samples[x - 1] as u32 * channel_height) / 256;
+					let mut y_current = (*sample as u32 * channel_height) / 256;
 
 					// Swap samples so it's always drawing downwards
 					if y_previous > y_current {
@@ -284,27 +303,51 @@ impl Song {
 					// Connect a line to the previous sample
 					draw::rect(
 						frame,
-						x_offset + x - 1,
+						x_position - 1,
 						y_offset + y_previous,
-						x_offset + x,
+						x_position,
 						y_offset + y_current,
 						[255, 255, 255],
 					);
 
 					// Draw the current sample
-					draw::pixel(
-						frame,
-						x_offset + x - 1,
-						y_offset + y_current,
-						[255, 255, 255],
-					);
+					draw::pixel(frame, x_position - 1, y_offset + y_current, [255, 255, 255]);
 				}
 			}
 		}
 
-		if self.render_images {
-			pixels_to_png(frame, &format!("./output/{}.png", self.frame));
-			self.frame += 1;
+		// Render frame to video
+
+		let width = *SCREEN_WIDTH * *SCREEN_SCALE;
+		let height = *SCREEN_HEIGHT * *SCREEN_SCALE;
+
+		let mut rs = frame.clone();
+
+		if *SCREEN_SCALE > 1 {
+			rs = RgbImage::new(width, height);
+
+			resize::new(
+				frame.width() as usize,
+				frame.height() as usize,
+				width as usize,
+				height as usize,
+				resize::Pixel::RGB8,
+				resize::Type::Point,
+			)
+			.unwrap()
+			.resize(frame.as_rgb(), rs.as_rgb_mut())
+			.unwrap()
+		}
+
+		let ef: Array3<u8> =
+			ndarray::Array3::from_shape_vec((height as usize, width as usize, 3), rs.into_raw())
+				.unwrap();
+
+		encoder.encode(&ef, position).unwrap();
+
+		self.frame += 1;
+		if self.frame % 100 == 0 {
+			println!("Rendered {} frames", self.frame);
 		}
 
 		Ok(())

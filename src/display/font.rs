@@ -2,7 +2,7 @@
 
 pub const FONT_WIDTH: u32 = 5;
 pub const FONT_HEIGHT: u32 = 6;
-pub const FONT_SEPARATION: usize = 6;
+pub const FONT_SEPARATION: u32 = 6;
 
 pub const FONT: [u32; 95] = [
 	0x00000000, 0x08021084, 0x0000294a, 0x15f52bea, 0x08fa38be, 0x33a22e60, 0x2e94d8a6, 0x00001084,
