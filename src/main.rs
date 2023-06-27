@@ -1,6 +1,6 @@
 use crate::data::{cli::Args, video::Encoding};
 use clap::Parser;
-use data::song::{Song, Window};
+use data::song::{Song, SongError, Window};
 use image::RgbImage;
 use indicatif::{ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
@@ -46,11 +46,16 @@ fn main() {
 		// `err` can either be the end of the song, or a genuine fault.
 		// Either way, stop execution.
 		if result.is_err() {
-			pb.finish_with_message(format!("{:?}", result.err().unwrap()));
+			// Step 3: Flush MP4 to file
+			encoding.flush();
+			pb.finish();
+
+			match result.err().unwrap() {
+				SongError::End => println!("Finished rendering to {}", &song.video_file_out),
+				SongError::Error(err) => println!("{:?}", err),
+			}
+
 			break;
 		}
 	}
-
-	// Step 3: Flush MP4 to file
-	encoding.flush();
 }
