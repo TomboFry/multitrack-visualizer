@@ -1,21 +1,18 @@
-use super::track::load_track_into_memory;
+use super::{track::load_track_into_memory, video::Encoding};
 use crate::{
 	display::{draw, RGB},
-	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_SCALE, SCREEN_WIDTH,
+	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
-use fast_image_resize as fr;
 use image::RgbImage;
-use ndarray::Array3;
 use rayon::prelude::*;
 use serde::Deserialize;
-use std::{collections::VecDeque, fs::File, io::BufReader, num::NonZeroU32};
+use std::{collections::VecDeque, fs::File, io::BufReader};
 use symphonia::core::{
 	audio::{AudioBufferRef, Signal},
 	codecs::Decoder,
 	errors::Error,
 	formats::{FormatReader, Track},
 };
-use video_rs::{Encoder, Time};
 
 #[derive(Deserialize)]
 pub struct Channel {
@@ -160,14 +157,6 @@ impl Window {
 
 		song
 	}
-}
-
-pub struct Encoding {
-	pub encoder: Encoder,
-	pub position: Time,
-	pub resizer: fr::Resizer,
-	pub size_src: (NonZeroU32, NonZeroU32),
-	pub size_dst: (NonZeroU32, NonZeroU32),
 }
 
 #[derive(Deserialize)]
@@ -320,41 +309,7 @@ impl Song {
 		}
 
 		// Render frame to video
-
-		let width = *SCREEN_WIDTH * *SCREEN_SCALE;
-		let height = *SCREEN_HEIGHT * *SCREEN_SCALE;
-
-		let rs: Vec<u8> = if *SCREEN_SCALE == 1 {
-			frame.as_raw().to_vec()
-		} else {
-			let src_image = fr::Image::from_slice_u8(
-				encoding.size_src.0,
-				encoding.size_src.1,
-				frame,
-				fr::PixelType::U8x3,
-			)
-			.unwrap();
-
-			let mut dst_image = fr::Image::new(
-				encoding.size_dst.0,
-				encoding.size_dst.1,
-				fr::PixelType::U8x3,
-			);
-
-			// Get mutable view of destination image data
-			let mut dst_view = dst_image.view_mut();
-			encoding
-				.resizer
-				.resize(&src_image.view(), &mut dst_view)
-				.unwrap();
-
-			dst_image.buffer().to_vec()
-		};
-
-		let ef: Array3<u8> =
-			ndarray::Array3::from_shape_vec((height as usize, width as usize, 3), rs).unwrap();
-
-		encoding.encoder.encode(&ef, &encoding.position).unwrap();
+		encoding.render_frame(frame);
 
 		self.frame += 1;
 		if self.frame % 100 == 0 {
