@@ -16,3 +16,4 @@ video-rs = { version = "0.4", features = ["ndarray"] }
 ffmpeg-next = "6.0.0"
 ndarray = "0.15.6"
 fast_image_resize = "2.7.3"
+clap = { version = "4.3.5", features = [ "derive" ] }

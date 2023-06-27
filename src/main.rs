@@ -1,4 +1,5 @@
-use crate::data::song::Encoding;
+use crate::data::{cli::Args, song::Encoding};
+use clap::Parser;
 use data::song::{Song, Window};
 use fast_image_resize as fr;
 use image::RgbImage;
@@ -10,7 +11,7 @@ mod data;
 mod display;
 
 lazy_static! {
-	pub static ref WINDOW: Window = Window::load_from_file();
+	pub static ref WINDOW: Window = Window::load_from_file(&Args::parse().window);
 	pub static ref SCREEN_WIDTH: u32 = WINDOW.width;
 	pub static ref SCREEN_HEIGHT: u32 = WINDOW.height;
 	pub static ref SCREEN_SCALE: u32 = WINDOW.scale;
@@ -20,8 +21,10 @@ lazy_static! {
 fn main() {
 	video_rs::init().expect("Could not initialise FFMPEG");
 
+	let cmd = Args::parse();
+
 	// Step 1: Set up project and encoder
-	let mut song = Song::load_from_file();
+	let mut song = Song::load_from_file(&cmd.song);
 	song.load_tracks_into_memory();
 
 	let width = (*SCREEN_WIDTH * *SCREEN_SCALE) as usize;

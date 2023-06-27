@@ -148,8 +148,8 @@ pub struct Window {
 }
 
 impl Window {
-	pub fn load_from_file() -> Self {
-		let file = File::open("./song/window.json");
+	pub fn load_from_file(window_path: &str) -> Self {
+		let file = File::open(window_path);
 		if file.is_err() {
 			panic!("Could not open window.json");
 		}
@@ -180,8 +180,8 @@ pub struct Song {
 }
 
 impl Song {
-	pub fn load_from_file() -> Self {
-		let file = File::open("./song/song.json");
+	pub fn load_from_file(song_path: &str) -> Self {
+		let file = File::open(song_path);
 		if file.is_err() {
 			panic!("Could not open song.json");
 		}
