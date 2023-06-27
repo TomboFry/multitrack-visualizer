@@ -4,7 +4,6 @@ use crate::{
 	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_SCALE, SCREEN_WIDTH,
 };
 use fast_image_resize as fr;
-use fr::{CropBox, ImageView, Resizer};
 use image::RgbImage;
 use ndarray::Array3;
 use rayon::prelude::*;
@@ -166,7 +165,7 @@ impl Window {
 pub struct Encoding {
 	pub encoder: Encoder,
 	pub position: Time,
-	pub resizer: Resizer,
+	pub resizer: fr::Resizer,
 	pub size_src: (NonZeroU32, NonZeroU32),
 	pub size_dst: (NonZeroU32, NonZeroU32),
 }
