@@ -1,7 +1,9 @@
+use crate::data::song::Encoding;
 use data::song::{Song, Window};
+use fast_image_resize as fr;
 use image::RgbImage;
 use lazy_static::lazy_static;
-use std::path::PathBuf;
+use std::{num::NonZeroU32, path::PathBuf};
 use video_rs::{Encoder, EncoderSettings, Locator, Time};
 
 mod data;
@@ -27,9 +29,7 @@ fn main() {
 
 	let destination: Locator = PathBuf::from(&song.video_file_out).into();
 	let settings = EncoderSettings::for_h264_yuv420p(width, height, false);
-	let mut encoder = Encoder::new(&destination, settings).expect("failed to create encoder");
 	let duration: Time = Time::from_nth_of_a_second(*SCREEN_FRAME_RATE);
-	let mut position = Time::zero();
 
 	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
 
@@ -39,18 +39,32 @@ fn main() {
 		frame.height()
 	);
 
+	let mut encoding = Encoding {
+		encoder: Encoder::new(&destination, settings).expect("failed to create encoder"),
+		position: Time::zero(),
+		size_src: (
+			NonZeroU32::new(*SCREEN_WIDTH).unwrap(),
+			NonZeroU32::new(*SCREEN_HEIGHT).unwrap(),
+		),
+		size_dst: (
+			NonZeroU32::new(width as u32).unwrap(),
+			NonZeroU32::new(height as u32).unwrap(),
+		),
+		resizer: fr::Resizer::new(fr::ResizeAlg::Nearest),
+	};
+
 	// Step 2: Render waveforms
 	loop {
-		let result = song.draw(&mut frame, &mut encoder, &mut position);
+		let result = song.draw(&mut frame, &mut encoding);
 
 		if result.is_err() {
 			println!("{:?}", result.err().unwrap());
 			break;
 		}
 
-		position = position.aligned_with(&duration).add();
+		encoding.position = encoding.position.aligned_with(&duration).add();
 	}
 
 	// Step 3: Flush MP4 to file
-	encoder.finish().unwrap();
+	encoding.encoder.finish().unwrap();
 }

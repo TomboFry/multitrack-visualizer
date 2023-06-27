@@ -15,5 +15,4 @@ image = { version = "0.24.6", default-features = false, features = [ "png" ] }
 video-rs = { version = "0.4", features = ["ndarray"] }
 ffmpeg-next = "6.0.0"
 ndarray = "0.15.6"
-resize = "0.7.4"
-rgb = "0.8.36"
+fast_image_resize = "2.7.3"

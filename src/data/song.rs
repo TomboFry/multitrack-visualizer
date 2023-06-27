@@ -3,12 +3,13 @@ use crate::{
 	display::{draw, RGB},
 	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_SCALE, SCREEN_WIDTH,
 };
+use fast_image_resize as fr;
+use fr::{CropBox, ImageView, Resizer};
 use image::RgbImage;
 use ndarray::Array3;
 use rayon::prelude::*;
-use rgb::FromSlice;
 use serde::Deserialize;
-use std::{collections::VecDeque, fs::File, io::BufReader};
+use std::{collections::VecDeque, fs::File, io::BufReader, num::NonZeroU32};
 use symphonia::core::{
 	audio::{AudioBufferRef, Signal},
 	codecs::Decoder,
@@ -162,6 +163,14 @@ impl Window {
 	}
 }
 
+pub struct Encoding {
+	pub encoder: Encoder,
+	pub position: Time,
+	pub resizer: Resizer,
+	pub size_src: (NonZeroU32, NonZeroU32),
+	pub size_dst: (NonZeroU32, NonZeroU32),
+}
+
 #[derive(Deserialize)]
 pub struct Song {
 	pub channels: Vec<Channel>,
@@ -199,12 +208,7 @@ impl Song {
 		}
 	}
 
-	pub fn draw(
-		&mut self,
-		frame: &mut RgbImage,
-		encoder: &mut Encoder,
-		position: &mut Time,
-	) -> Result<(), SongError> {
+	pub fn draw(&mut self, frame: &mut RgbImage, encoding: &mut Encoding) -> Result<(), SongError> {
 		let cols = if *SCREEN_WIDTH >= *SCREEN_HEIGHT {
 			2.min(self.channels.len())
 		} else {
@@ -321,29 +325,37 @@ impl Song {
 		let width = *SCREEN_WIDTH * *SCREEN_SCALE;
 		let height = *SCREEN_HEIGHT * *SCREEN_SCALE;
 
-		let mut rs = frame.clone();
-
-		if *SCREEN_SCALE > 1 {
-			rs = RgbImage::new(width, height);
-
-			resize::new(
-				frame.width() as usize,
-				frame.height() as usize,
-				width as usize,
-				height as usize,
-				resize::Pixel::RGB8,
-				resize::Type::Point,
+		let rs: Vec<u8> = if *SCREEN_SCALE == 1 {
+			frame.as_raw().to_vec()
+		} else {
+			let src_image = fr::Image::from_slice_u8(
+				encoding.size_src.0,
+				encoding.size_src.1,
+				frame,
+				fr::PixelType::U8x3,
 			)
-			.unwrap()
-			.resize(frame.as_rgb(), rs.as_rgb_mut())
-			.unwrap()
-		}
+			.unwrap();
 
-		let ef: Array3<u8> =
-			ndarray::Array3::from_shape_vec((height as usize, width as usize, 3), rs.into_raw())
+			let mut dst_image = fr::Image::new(
+				encoding.size_dst.0,
+				encoding.size_dst.1,
+				fr::PixelType::U8x3,
+			);
+
+			// Get mutable view of destination image data
+			let mut dst_view = dst_image.view_mut();
+			encoding
+				.resizer
+				.resize(&src_image.view(), &mut dst_view)
 				.unwrap();
 
-		encoder.encode(&ef, position).unwrap();
+			dst_image.buffer().to_vec()
+		};
+
+		let ef: Array3<u8> =
+			ndarray::Array3::from_shape_vec((height as usize, width as usize, 3), rs).unwrap();
+
+		encoding.encoder.encode(&ef, &encoding.position).unwrap();
 
 		self.frame += 1;
 		if self.frame % 100 == 0 {
