@@ -37,6 +37,9 @@ pub struct Channel {
 
 	#[serde(skip)]
 	pub play_time_samples: u64,
+
+	#[serde(skip)]
+	pub play_time_samples_total: u64,
 }
 
 #[derive(Debug)]
@@ -69,7 +72,7 @@ impl Channel {
 				Ok(packet) => packet,
 				Err(Error::IoError(_err)) => {
 					if self.play_time_samples
-						>= track.codec_params.n_frames.unwrap() - min_samples_required as u64
+						>= self.play_time_samples_total - min_samples_required as u64
 					{
 						return Err(SongError::End);
 					}
@@ -166,9 +169,6 @@ impl Window {
 pub struct Song {
 	pub channels: Vec<Channel>,
 	pub video_file_out: String,
-
-	#[serde(skip)]
-	pub frame: usize,
 }
 
 impl Song {
@@ -182,6 +182,11 @@ impl Song {
 		let rdr = BufReader::new(file);
 		let song: Song = serde_json::from_reader(rdr).unwrap();
 
+		assert!(
+			song.channels.len() > 0,
+			"Please provide at least one channel"
+		);
+
 		println!("Loaded song with {} channels", song.channels.len());
 		for channel in &song.channels {
 			println!("- {} ({})", channel.name, channel.file);
@@ -193,6 +198,7 @@ impl Song {
 	pub fn load_tracks_into_memory(&mut self) {
 		for channel in &mut self.channels {
 			let (format, track, decoder) = load_track_into_memory(&channel.file);
+			channel.play_time_samples_total = track.codec_params.n_frames.unwrap();
 			channel.format = Some(format);
 			channel.track = Some(track);
 			channel.decoder = Some(decoder);
@@ -313,11 +319,6 @@ impl Song {
 
 		// Render frame to video
 		encoding.render_frame(frame);
-
-		self.frame += 1;
-		if self.frame % 100 == 0 {
-			println!("Rendered {} frames", self.frame);
-		}
 
 		Ok(())
 	}

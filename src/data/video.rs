@@ -2,32 +2,30 @@ use crate::{SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_SCALE, SCREEN_WIDTH};
 use fast_image_resize as fr;
 use image::RgbImage;
 use ndarray::Array3;
-use std::num::NonZeroU32;
-use video_rs::{Encoder, Time};
+use std::{num::NonZeroU32, path::PathBuf};
+use video_rs::{Encoder, EncoderSettings, Locator, Time};
+
+use super::song::Song;
 
 pub struct Encoding {
 	pub encoder: Encoder,
 	pub position: Time,
 	pub frame_duration: Time,
 	pub resizer: fr::Resizer,
-	pub size_src: (NonZeroU32, NonZeroU32),
-	pub size_dst: (NonZeroU32, NonZeroU32),
 }
 
 impl Encoding {
-	pub fn new(encoder: Encoder) -> Self {
+	pub fn new(song: &Song) -> Self {
+		let width = *SCREEN_WIDTH * *SCREEN_SCALE;
+		let height = *SCREEN_HEIGHT * *SCREEN_SCALE;
+		let destination: Locator = PathBuf::from(&song.video_file_out).into();
+		let settings = EncoderSettings::for_h264_yuv420p(width as usize, height as usize, false);
+		let encoder = Encoder::new(&destination, settings).expect("Failed to create encoder");
+
 		Encoding {
 			encoder,
 			position: Time::zero(),
 			frame_duration: Time::from_nth_of_a_second(*SCREEN_FRAME_RATE),
-			size_src: (
-				NonZeroU32::new(*SCREEN_WIDTH).unwrap(),
-				NonZeroU32::new(*SCREEN_HEIGHT).unwrap(),
-			),
-			size_dst: (
-				NonZeroU32::new(*SCREEN_WIDTH * *SCREEN_SCALE).unwrap(),
-				NonZeroU32::new(*SCREEN_HEIGHT * *SCREEN_SCALE).unwrap(),
-			),
 			resizer: fr::Resizer::new(fr::ResizeAlg::Nearest),
 		}
 	}
@@ -37,11 +35,19 @@ impl Encoding {
 			return frame.as_raw().to_vec();
 		}
 
-		let src_image =
-			fr::Image::from_slice_u8(self.size_src.0, self.size_src.1, frame, fr::PixelType::U8x3)
-				.unwrap();
+		let src_image = fr::Image::from_slice_u8(
+			NonZeroU32::new(*SCREEN_WIDTH).unwrap(),
+			NonZeroU32::new(*SCREEN_HEIGHT).unwrap(),
+			frame,
+			fr::PixelType::U8x3,
+		)
+		.unwrap();
 
-		let mut dst_image = fr::Image::new(self.size_dst.0, self.size_dst.1, fr::PixelType::U8x3);
+		let mut dst_image = fr::Image::new(
+			NonZeroU32::new(*SCREEN_WIDTH * *SCREEN_SCALE).unwrap(),
+			NonZeroU32::new(*SCREEN_HEIGHT * *SCREEN_SCALE).unwrap(),
+			fr::PixelType::U8x3,
+		);
 
 		// Get mutable view of destination image data
 		let mut dst_view = dst_image.view_mut();
@@ -56,8 +62,8 @@ impl Encoding {
 		let pixels = self.resize_frame(frame);
 		let ef: Array3<u8> = ndarray::Array3::from_shape_vec(
 			(
-				self.size_dst.1.get() as usize,
-				self.size_dst.0.get() as usize,
+				(*SCREEN_HEIGHT * *SCREEN_SCALE) as usize,
+				(*SCREEN_WIDTH * *SCREEN_SCALE) as usize,
 				3,
 			),
 			pixels,

@@ -2,9 +2,8 @@ use crate::data::{cli::Args, video::Encoding};
 use clap::Parser;
 use data::song::{Song, Window};
 use image::RgbImage;
+use indicatif::{ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
-use std::path::PathBuf;
-use video_rs::{Encoder, EncoderSettings, Locator};
 
 mod data;
 mod display;
@@ -24,29 +23,30 @@ fn main() {
 
 	// Step 1: Set up project and encoder
 	let mut song = Song::load_from_file(&cmd.song);
+	let mut encoding = Encoding::new(&song);
+	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
+
+	// Step 1.5: Setup audio decoders for each track
 	song.load_tracks_into_memory();
 
-	let width = (*SCREEN_WIDTH * *SCREEN_SCALE) as usize;
-	let height = (*SCREEN_HEIGHT * *SCREEN_SCALE) as usize;
-
-	let destination: Locator = PathBuf::from(&song.video_file_out).into();
-	let settings = EncoderSettings::for_h264_yuv420p(width, height, false);
-	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
-	let mut encoding =
-		Encoding::new(Encoder::new(&destination, settings).expect("failed to create encoder"));
-
-	println!(
-		"\nGenerated frame of size {}x{}",
-		frame.width(),
-		frame.height()
+	let pb = ProgressBar::new(song.channels[0].play_time_samples_total);
+	pb.set_style(
+		ProgressStyle::with_template("[{eta_precise}]  {wide_bar:.green/black}  {percent}%  ")
+			.unwrap()
+			.progress_chars("#>-"),
 	);
 
 	// Step 2: Render waveforms
+	println!("Starting render");
 	loop {
 		let result = song.draw(&mut frame, &mut encoding);
 
+		pb.set_position(song.channels[0].play_time_samples);
+
+		// `err` can either be the end of the song, or a genuine fault.
+		// Either way, stop execution.
 		if result.is_err() {
-			println!("{:?}", result.err().unwrap());
+			pb.finish_with_message(format!("{:?}", result.err().unwrap()));
 			break;
 		}
 	}
