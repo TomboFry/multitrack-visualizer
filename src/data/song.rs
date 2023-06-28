@@ -255,9 +255,10 @@ impl Song {
 
 				// Determine a good start sample
 				// Loop through the first ~6% of samples and find a significant jump in the signal
+				let search_sample_max = raw_samples.len() / 15;
 				let mut start_sample = 0;
 
-				for x in 0..raw_samples.len() / 15 {
+				for x in 0..search_sample_max {
 					let y_previous = raw_samples[x] as i16;
 					let y_current = raw_samples[x + 1] as i16;
 					let diff = y_previous - y_current;
@@ -273,7 +274,7 @@ impl Song {
 					.into_par_iter()
 					.map(|index| {
 						let percent = (index as f32 / channel_width as f32)
-							* (raw_samples.len() - start_sample) as f32;
+							* (raw_samples.len() - search_sample_max) as f32;
 						let remainder = percent % 1.0;
 						let i_low = percent.floor() as usize;
 						let i_high = percent.ceil() as usize;
