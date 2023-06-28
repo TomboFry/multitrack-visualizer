@@ -548,7 +548,7 @@ dependencies = [
 
 [[package]]
 name = "multitrack-visualizer"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "clap",
  "fast_image_resize",
