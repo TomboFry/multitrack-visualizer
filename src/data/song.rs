@@ -63,6 +63,8 @@ impl Channel {
 				.reserve(min_samples_required - self.buffer.capacity())
 		}
 
+		let print_error = |err: &str| println!("Error rendering \"{}\": {}", &self.file, err);
+
 		while self.buffer.len() < min_samples_required || retries > 0 {
 			// loop of death prevention measure
 			retries -= 1;
@@ -93,7 +95,7 @@ impl Channel {
 			}
 
 			if packet.track_id() != track.id {
-				println!("Track doesn't match, skipping...");
+				print_error("Track doesn't match, skipping...");
 				continue;
 			}
 
@@ -104,7 +106,23 @@ impl Channel {
 						let mut samples = buf
 							.chan(0)
 							.par_iter()
-							.map(|sample| ((sample / 65536.0) + 128.0) as u8)
+							.map(|sample| ((sample * 128.0) + 128.0) as u8)
+							.collect::<VecDeque<u8>>();
+						self.buffer.append(&mut samples);
+					}
+					AudioBufferRef::F64(buf) => {
+						let mut samples = buf
+							.chan(0)
+							.par_iter()
+							.map(|sample| ((sample * 128.0) + 128.0) as u8)
+							.collect::<VecDeque<u8>>();
+						self.buffer.append(&mut samples);
+					}
+					AudioBufferRef::S16(buf) => {
+						let mut samples = buf
+							.chan(0)
+							.par_iter()
+							.map(|sample| ((*sample / 2i16.pow(8)) + 128) as u8)
 							.collect::<VecDeque<u8>>();
 						self.buffer.append(&mut samples);
 					}
@@ -112,12 +130,25 @@ impl Channel {
 						let mut samples = buf
 							.chan(0)
 							.par_iter()
-							.map(|sample| (((sample.0 as f32) / 65536.0) + 128.0) as u8)
+							.map(|sample| ((sample.0 / 2i32.pow(16)) + 128) as u8)
 							.collect::<VecDeque<u8>>();
 						self.buffer.append(&mut samples);
 					}
+					AudioBufferRef::S32(buf) => {
+						let mut samples = buf
+							.chan(0)
+							.par_iter()
+							.map(|sample| ((*sample / 2i32.pow(24)) + 128) as u8)
+							.collect::<VecDeque<u8>>();
+						self.buffer.append(&mut samples);
+					}
+					AudioBufferRef::U8(buf) => {
+						// Format already u8, just copy directly
+						self.buffer.extend(buf.chan(0).iter());
+					}
 					_ => {
 						// Repeat for the different sample formats.
+						print_error("format not supported");
 						unimplemented!()
 					}
 				},
@@ -263,7 +294,7 @@ impl Song {
 					let y_current = raw_samples[x + 1] as i16;
 					let diff = y_previous - y_current;
 
-					if diff >= 10 {
+					if diff >= 8 {
 						start_sample = x;
 						break;
 					}
