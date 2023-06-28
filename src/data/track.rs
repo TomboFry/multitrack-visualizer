@@ -1,5 +1,3 @@
-use core::panic;
-
 use symphonia::core::{
 	codecs::{Decoder, CODEC_TYPE_NULL},
 	formats::{FormatOptions, FormatReader, Track},
@@ -12,9 +10,11 @@ pub fn load_track_into_memory(path: &str) -> (Box<dyn FormatReader>, Track, Box<
 	// Open the media source.
 	let src = std::fs::File::open(&path);
 
+	let print_error = |error: &str| format!("Could not load track \"{path}\" - Error: {error}");
+
 	if let Err(err) = src {
-		println!("Could not load {}", &path);
-		panic!("{:?}", err);
+		println!("\n{}\n", print_error(&err.to_string()));
+		std::process::exit(1);
 	}
 
 	let src = src.unwrap();
@@ -34,7 +34,7 @@ pub fn load_track_into_memory(path: &str) -> (Box<dyn FormatReader>, Track, Box<
 	// Probe the media source.
 	let probed = symphonia::default::get_probe()
 		.format(&hint, mss, &fmt_opts, &meta_opts)
-		.expect("unsupported format");
+		.expect(&print_error("Unsupported format"));
 
 	// Get the instantiated format reader.
 	let format = probed.format;
@@ -44,12 +44,14 @@ pub fn load_track_into_memory(path: &str) -> (Box<dyn FormatReader>, Track, Box<
 		.tracks()
 		.iter()
 		.find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
-		.expect("no supported audio tracks")
+		.expect(&print_error("No supported audio tracks"))
 		.clone();
+
+	let codec = track.codec_params.codec.to_string();
 
 	let decoder = symphonia::default::get_codecs()
 		.make(&track.codec_params, &Default::default())
-		.expect("unsupported codec");
+		.expect(&print_error(&format!("{codec} is an unsupported codec")));
 
 	(format, track, decoder)
 }
