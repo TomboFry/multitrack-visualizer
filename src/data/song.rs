@@ -1,177 +1,12 @@
-use super::{track::load_track_into_memory, video::Encoding};
-use crate::{
-	display::{draw, RGB},
-	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH,
+use super::{
+	channel::{Channel, SongError},
+	video::Encoding,
 };
+use crate::{display::draw, SCREEN_HEIGHT, SCREEN_WIDTH};
 use image::RgbImage;
 use rayon::prelude::*;
 use serde::Deserialize;
-use std::{collections::VecDeque, fs::File, io::BufReader};
-use symphonia::core::{
-	audio::{AudioBufferRef, Signal},
-	codecs::Decoder,
-	errors::Error,
-	formats::{FormatReader, Track},
-};
-
-#[derive(Deserialize)]
-pub struct Channel {
-	pub name: String,
-	pub file: String,
-
-	/// Colour is optional, and will default to black, ie. [0,0,0]
-	#[serde(default)]
-	pub colour: RGB,
-
-	#[serde(skip)]
-	pub track: Option<Track>,
-
-	#[serde(skip)]
-	pub format: Option<Box<dyn FormatReader>>,
-
-	#[serde(skip)]
-	pub decoder: Option<Box<dyn Decoder>>,
-
-	#[serde(skip)]
-	pub buffer: VecDeque<u8>,
-
-	#[serde(skip)]
-	pub play_time_samples: u64,
-
-	#[serde(skip)]
-	pub play_time_samples_total: u64,
-}
-
-#[derive(Debug)]
-pub enum SongError {
-	Error(symphonia::core::errors::Error),
-	End,
-}
-
-impl Channel {
-	pub fn get_frame_samples(&mut self) -> Result<Vec<u8>, SongError> {
-		let format = self.format.as_mut().unwrap();
-		let track = self.track.as_mut().unwrap();
-		let decoder = self.decoder.as_mut().unwrap();
-		let min_samples_required =
-			track.codec_params.sample_rate.unwrap() as usize / *SCREEN_FRAME_RATE;
-
-		let mut retries = 100;
-
-		if self.buffer.capacity() < min_samples_required {
-			self.buffer
-				.reserve(min_samples_required - self.buffer.capacity())
-		}
-
-		let print_error = |err: &str| println!("Error rendering \"{}\": {}", &self.file, err);
-
-		while self.buffer.len() < min_samples_required || retries > 0 {
-			// loop of death prevention measure
-			retries -= 1;
-
-			// Get the next packet from the media format.
-			let packet = match format.next_packet() {
-				Ok(packet) => packet,
-				Err(Error::IoError(_err)) => {
-					if self.play_time_samples
-						>= self.play_time_samples_total - min_samples_required as u64
-					{
-						return Err(SongError::End);
-					}
-					continue;
-				}
-				Err(err) => {
-					// A unrecoverable error occured, halt decoding.
-					return Err(SongError::Error(err));
-				}
-			};
-
-			// Consume any new metadata that has been read since the last packet.
-			while !format.metadata().is_latest() {
-				// Pop the old head of the metadata queue.
-				format.metadata().pop();
-
-				// Consume the new metadata at the head of the metadata queue.
-			}
-
-			if packet.track_id() != track.id {
-				print_error("Track doesn't match, skipping...");
-				continue;
-			}
-
-			// Decode the packet into audio samples.
-			match decoder.decode(&packet) {
-				Ok(decoded) => match decoded {
-					AudioBufferRef::F32(buf) => {
-						let mut samples = buf
-							.chan(0)
-							.par_iter()
-							.map(|sample| ((sample * 128.0) + 128.0) as u8)
-							.collect::<VecDeque<u8>>();
-						self.buffer.append(&mut samples);
-					}
-					AudioBufferRef::F64(buf) => {
-						let mut samples = buf
-							.chan(0)
-							.par_iter()
-							.map(|sample| ((sample * 128.0) + 128.0) as u8)
-							.collect::<VecDeque<u8>>();
-						self.buffer.append(&mut samples);
-					}
-					AudioBufferRef::S16(buf) => {
-						let mut samples = buf
-							.chan(0)
-							.par_iter()
-							.map(|sample| ((*sample / 2i16.pow(8)) + 128) as u8)
-							.collect::<VecDeque<u8>>();
-						self.buffer.append(&mut samples);
-					}
-					AudioBufferRef::S24(buf) => {
-						let mut samples = buf
-							.chan(0)
-							.par_iter()
-							.map(|sample| ((sample.0 / 2i32.pow(16)) + 128) as u8)
-							.collect::<VecDeque<u8>>();
-						self.buffer.append(&mut samples);
-					}
-					AudioBufferRef::S32(buf) => {
-						let mut samples = buf
-							.chan(0)
-							.par_iter()
-							.map(|sample| ((*sample / 2i32.pow(24)) + 128) as u8)
-							.collect::<VecDeque<u8>>();
-						self.buffer.append(&mut samples);
-					}
-					AudioBufferRef::U8(buf) => {
-						// Format already u8, just copy directly
-						self.buffer.extend(buf.chan(0).iter());
-					}
-					_ => {
-						// Repeat for the different sample formats.
-						print_error("format not supported");
-						unimplemented!()
-					}
-				},
-				Err(Error::IoError(_)) => {
-					// The packet failed to decode due to an IO error, skip the packet.
-					continue;
-				}
-				Err(Error::DecodeError(_)) => {
-					// The packet failed to decode due to invalid data, skip the packet.
-					continue;
-				}
-				Err(err) => {
-					// An unrecoverable error occured, halt decoding.
-					return Err(SongError::Error(err));
-				}
-			}
-		}
-
-		self.play_time_samples += min_samples_required as u64;
-
-		Ok(self.buffer.drain(0..min_samples_required).collect())
-	}
-}
+use std::{fs::File, io::BufReader};
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Window {
@@ -211,7 +46,7 @@ impl Song {
 		let file = file.unwrap();
 
 		let rdr = BufReader::new(file);
-		let song: Song = serde_json::from_reader(rdr).unwrap();
+		let mut song: Song = serde_json::from_reader(rdr).unwrap();
 
 		assert!(
 			song.channels.len() > 0,
@@ -223,16 +58,14 @@ impl Song {
 			println!("- {} ({})", channel.name, channel.file);
 		}
 
+		song.load_tracks_into_memory();
+
 		song
 	}
 
 	pub fn load_tracks_into_memory(&mut self) {
 		for channel in &mut self.channels {
-			let (format, track, decoder) = load_track_into_memory(&channel.file);
-			channel.play_time_samples_total = track.codec_params.n_frames.unwrap();
-			channel.format = Some(format);
-			channel.track = Some(track);
-			channel.decoder = Some(decoder);
+			channel.load_track_into_memory();
 		}
 	}
 

@@ -1,6 +1,7 @@
 use crate::data::{cli::Args, video::Encoding};
 use clap::Parser;
-use data::song::{Song, SongError, Window};
+use data::channel::SongError;
+use data::song::{Song, Window};
 use image::RgbImage;
 use indicatif::{ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
@@ -25,9 +26,6 @@ fn main() {
 	let mut song = Song::load_from_file(&cmd.song);
 	let mut encoding = Encoding::new(&song);
 	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
-
-	// Step 1.5: Setup audio decoders for each track
-	song.load_tracks_into_memory();
 
 	let pb = ProgressBar::new(song.channels[0].play_time_samples_total);
 	pb.set_style(
