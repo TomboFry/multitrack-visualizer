@@ -1,0 +1,58 @@
+{
+	"$schema": "http://json-schema.org/schema",
+	"$id": "https://git.tombo.sh/tom/multitrack-visualizer/raw/branch/main/song-schema.json",
+	"title": "Song Schema",
+	"type": "object",
+	"properties": {
+		"channels": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"description": "The label displayed on-screen for this channel",
+						"type": "string"
+					},
+					"file": {
+						"description": "The input audio filename used for this channel",
+						"type": "string",
+						"minLength": 1
+					},
+					"colour": {
+						"description": "Defines the red, green, and blue colour values used as the background for this channel",
+						"type": "array",
+						"items": {
+							"type": "number",
+							"minimum": 0,
+							"maximum": 255
+						},
+						"maxItems": 3,
+						"minItems": 3,
+						"default": [
+							0,
+							0,
+							0
+						]
+					},
+					"use_alignment": {
+						"description": "Attempt to align the waveform on each frame. Non-tonal channels or low frequency audio might look better displayed when this is turned off.",
+						"type": "boolean",
+						"default": true
+					}
+				},
+				"required": [
+					"name",
+					"file"
+				]
+			}
+		},
+		"video_file_out": {
+			"type": "string",
+			"default": "./output.mp4"
+		}
+	},
+	"required": [
+		"channels",
+		"video_file_out"
+	]
+}

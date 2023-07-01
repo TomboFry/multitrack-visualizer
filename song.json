@@ -1,4 +1,5 @@
 {
+	"$schema": "https://git.tombo.sh/tom/multitrack-visualizer/raw/branch/main/song-schema.json",
 	"channels": [
 		{
 			"name": "Channel 1",
