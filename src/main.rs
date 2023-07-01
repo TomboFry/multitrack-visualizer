@@ -29,13 +29,13 @@ fn main() {
 
 	let pb = ProgressBar::new(song.channels[0].play_time_samples_total);
 	pb.set_style(
-		ProgressStyle::with_template("[{eta_precise}]  {wide_bar:.green/black}  {percent}%  ")
+		ProgressStyle::with_template("[{eta_precise}]  [{wide_bar:.green/black}]  {percent}%  ")
 			.unwrap()
 			.progress_chars("#>-"),
 	);
 
 	// Step 2: Render waveforms
-	println!("Starting render");
+	println!("\nStarting render");
 	loop {
 		let result = song.draw(&mut frame, &mut encoding);
 

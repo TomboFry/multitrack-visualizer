@@ -34,6 +34,9 @@ Options:
   * `file` is a path name to the audio file, and
   * `colour` (optional) - contains the Red, Green, and Blue colour values
     (0-255). Defaults to black, ie. `[0, 0, 0]`
+  * `use_alignment`: (optional) - Attempt to align the waveform on each frame.
+    Non-tonal channels or low frequency audio might look better displayed when
+    this is turned off. Defaults to `true`
 * `video_file_out` is a path name to the video that will be output.
 
 ```json
@@ -42,7 +45,8 @@ Options:
     {
       "name": "Channel Name",
       "file": "/path/to/audio-file.wav",
-      "colour": [0, 2, 255]
+      "colour": [0, 2, 255],
+      "use_alignment": false
     }
   ],
   "video_file_out": "/path/to/output.mp4"

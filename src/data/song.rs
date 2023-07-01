@@ -54,8 +54,16 @@ impl Song {
 		);
 
 		println!("Loaded song with {} channels", song.channels.len());
+
+		println!("\n{:<16} {}", "Channel Name", "Filename");
 		for channel in &song.channels {
-			println!("- {} ({})", channel.name, channel.file);
+			let display_name = if channel.name.len() > 16 {
+				format!("{}...", channel.name.split_at(13).0)
+			} else {
+				channel.name.clone()
+			};
+
+			println!("{:<16} {}", display_name, channel.file);
 		}
 
 		song.load_tracks_into_memory();
@@ -122,14 +130,16 @@ impl Song {
 				let search_sample_max = raw_samples.len() / 15;
 				let mut start_sample = 0;
 
-				for x in 0..search_sample_max {
-					let y_previous = raw_samples[x] as i16;
-					let y_current = raw_samples[x + 1] as i16;
-					let diff = y_previous - y_current;
+				if channel.use_alignment {
+					for x in 0..search_sample_max {
+						let y_previous = raw_samples[x] as i16;
+						let y_current = raw_samples[x + 1] as i16;
+						let diff = y_previous - y_current;
 
-					if diff >= 8 {
-						start_sample = x;
-						break;
+						if diff >= 8 {
+							start_sample = x;
+							break;
+						}
 					}
 				}
 

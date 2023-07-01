@@ -16,7 +16,8 @@
 				140,
 				30,
 				220
-			]
+			],
+			"use_alignment": false
 		}
 	],
 	"video_file_out": "./song/output.mp4"

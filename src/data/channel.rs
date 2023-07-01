@@ -12,6 +12,10 @@ use symphonia::core::{
 	probe::Hint,
 };
 
+fn default_true() -> bool {
+	true
+}
+
 #[derive(Deserialize)]
 pub struct Channel {
 	pub name: String,
@@ -20,6 +24,9 @@ pub struct Channel {
 	/// Colour is optional, and will default to black, ie. [0,0,0]
 	#[serde(default)]
 	pub colour: RGB,
+
+	#[serde(default = "default_true")]
+	pub use_alignment: bool,
 
 	#[serde(skip)]
 	pub track: Option<Track>,
