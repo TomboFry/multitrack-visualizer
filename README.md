@@ -9,6 +9,8 @@ and different from my usual screen capture of FL Studio.
 
 ## Screenshot
 
+I've uploaded [a full-song to YouTube using this software](https://www.youtube.com/watch?v=9mGbqnYR_UI), so you can see what the final output looks like!
+
 ![](./screenshot.png)
 
 ## Usage
@@ -17,9 +19,9 @@ and different from my usual screen capture of FL Studio.
 multitrack-visualizer.exe [OPTIONS]
 
 Options:
-  -s, --song /path/to/song.json       JSON config file for all tracks, colours, and audio files
-  -w, --window /path/to/window.json   JSON config file for size and scaling of the output video file
-  -h, --help                          Print help
+  -s, --song /path/to/song.json       JSON config file for all tracks, colours, and audio files (default: ./song.json)
+  -w, --window /path/to/window.json   JSON config file for size and scaling of the output video (default: ./window.json)
+  -h, --help                          Print this help
   -V, --version                       Print version
 ```
 
