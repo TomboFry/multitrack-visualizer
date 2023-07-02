@@ -58,3 +58,19 @@ pub fn rect(frame: &mut RgbImage, x1: u32, y1: u32, x2: u32, y2: u32, colour: RG
 		}
 	}
 }
+
+pub fn rect_gradient(frame: &mut RgbImage, x1: u32, y1: u32, x2: u32, y2: u32, colour: RGB) {
+	let mut col_prev = colour;
+
+	for y in y1..y2 {
+		for x in x1..x2 {
+			pixel(frame, x, y, col_prev);
+		}
+
+		col_prev = [
+			col_prev[0] - (y % 3 == 0 && col_prev[0] > 0) as u8,
+			col_prev[1] - (y % 3 == 1 && col_prev[1] > 0) as u8,
+			col_prev[2] - (y % 3 == 2 && col_prev[2] > 0) as u8,
+		];
+	}
+}

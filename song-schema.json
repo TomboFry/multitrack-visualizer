@@ -49,6 +49,10 @@
 		"video_file_out": {
 			"type": "string",
 			"default": "./output.mp4"
+		},
+		"use_gradients": {
+			"type": "boolean",
+			"default": false
 		}
 	},
 	"required": [

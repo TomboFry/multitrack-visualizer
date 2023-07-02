@@ -21,5 +21,6 @@
 			"use_alignment": false
 		}
 	],
-	"video_file_out": "./song/output.mp4"
+	"video_file_out": "./song/output.mp4",
+	"use_gradients": false
 }

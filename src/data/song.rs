@@ -35,6 +35,7 @@ impl Window {
 pub struct Song {
 	pub channels: Vec<Channel>,
 	pub video_file_out: String,
+	pub use_gradients: bool,
 }
 
 impl Song {
@@ -104,14 +105,26 @@ impl Song {
 					y_offset + channel_height,
 					[0, 0, 0],
 				);
-				draw::rect(
-					frame,
-					x_offset,
-					y_offset,
-					x_offset + channel_width - 1,
-					y_offset + channel_height - 1,
-					channel.colour,
-				);
+
+				if self.use_gradients {
+					draw::rect_gradient(
+						frame,
+						x_offset,
+						y_offset,
+						x_offset + channel_width - 1,
+						y_offset + channel_height - 1,
+						channel.colour,
+					);
+				} else {
+					draw::rect(
+						frame,
+						x_offset,
+						y_offset,
+						x_offset + channel_width - 1,
+						y_offset + channel_height - 1,
+						channel.colour,
+					);
+				}
 
 				// Channel Name
 				draw::text(frame, x_offset + 4, y_offset + 4, &channel.name);
