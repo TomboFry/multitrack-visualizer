@@ -27,6 +27,10 @@ fn letter(frame: &mut RgbImage, x: u32, y: u32, letter: u32, colour: RGB) {
 /// Draw a string of text to the screen.
 /// This will ignore any characters outside of the range of valid characters.
 pub fn text(frame: &mut RgbImage, x: u32, y: u32, text: &str) {
+	text_colour(frame, x, y, text, [0xff, 0xff, 0xff]);
+}
+
+pub fn text_colour(frame: &mut RgbImage, x: u32, y: u32, text: &str, colour: RGB) {
 	text.chars()
 		.filter_map(|letter| {
 			let code = letter as usize;
@@ -41,13 +45,7 @@ pub fn text(frame: &mut RgbImage, x: u32, y: u32, text: &str) {
 		})
 		.enumerate()
 		.for_each(|(tx, index)| {
-			letter(
-				frame,
-				(tx as u32 * FONT_SEPARATION) + x,
-				y,
-				index,
-				[0xff, 0xff, 0xff],
-			);
+			letter(frame, (tx as u32 * FONT_SEPARATION) + x, y, index, colour);
 		});
 }
 
