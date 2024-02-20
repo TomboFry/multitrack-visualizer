@@ -1,5 +1,6 @@
 use super::{
 	channel::{Channel, SongError},
+	defaults::{default_output, default_true},
 	video::Encoding,
 };
 use crate::{display::draw, SCREEN_HEIGHT, SCREEN_WIDTH};
@@ -34,7 +35,11 @@ impl Window {
 #[derive(Deserialize)]
 pub struct Song {
 	pub channels: Vec<Channel>,
+
+	#[serde(default = "default_output")]
 	pub video_file_out: String,
+
+	#[serde(default = "default_true")]
 	pub use_gradients: bool,
 }
 

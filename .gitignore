@@ -16,4 +16,4 @@ releases/
 *.mp4
 *.png
 *.mid
-!/screenshot.png
+!/screenshot*.png

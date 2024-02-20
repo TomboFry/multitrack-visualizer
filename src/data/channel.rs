@@ -1,3 +1,4 @@
+use super::defaults::default_true;
 use crate::{display::RGB, SCREEN_FRAME_RATE};
 use rayon::prelude::*;
 use serde::Deserialize;
@@ -11,10 +12,6 @@ use symphonia::core::{
 	meta::MetadataOptions,
 	probe::Hint,
 };
-
-fn default_true() -> bool {
-	true
-}
 
 #[derive(Deserialize)]
 pub struct Channel {

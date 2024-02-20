@@ -5,8 +5,12 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 pub struct Args {
 	/// JSON config file for all the tracks, colours, and audio files
-	#[arg(short, long, default_value_t = String::from("./song.json"))]
+	#[arg(short, long, default_value_t = String::from(""))]
 	pub song: String,
+
+	/// JSON config file for loading a MIDI file instead of WAVs
+	#[arg(short, long, default_value_t = String::from(""))]
+	pub midi: String,
 
 	/// JSON config file for the size and scaling for the output video file
 	#[arg(short, long, default_value_t = String::from("./window.json"))]

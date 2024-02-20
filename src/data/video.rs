@@ -5,8 +5,6 @@ use ndarray::Array3;
 use std::{num::NonZeroU32, path::PathBuf};
 use video_rs::{Encoder, EncoderSettings, Locator, Time};
 
-use super::song::Song;
-
 pub struct Encoding {
 	pub encoder: Encoder,
 	pub position: Time,
@@ -15,10 +13,10 @@ pub struct Encoding {
 }
 
 impl Encoding {
-	pub fn new(song: &Song) -> Self {
+	pub fn new(video_file_out: &str) -> Self {
 		let width = *SCREEN_WIDTH * *SCREEN_SCALE;
 		let height = *SCREEN_HEIGHT * *SCREEN_SCALE;
-		let destination: Locator = PathBuf::from(&song.video_file_out).into();
+		let destination: Locator = PathBuf::from(video_file_out).into();
 		let settings = EncoderSettings::for_h264_yuv420p(width as usize, height as usize, false);
 		let encoder = Encoder::new(&destination, settings).expect("Failed to create encoder");
 

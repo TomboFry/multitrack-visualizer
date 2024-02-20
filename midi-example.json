@@ -1,0 +1,65 @@
+{
+	"midi_file": "midi-file.mid",
+	"duration_secs": 3,
+	"video_file_out": "./song/output.mp4",
+	"use_gradients": true,
+	"channels": {
+		"DRUMS": {
+			"order": 0,
+			"colour": [
+				210,
+				46,
+				10
+			]
+		},
+		"BASS": {
+			"order": 1,
+			"colour": [
+				140,
+				30,
+				220
+			]
+		},
+		"VOCALS": {
+			"order": 2,
+			"colour": [
+				230,
+				128,
+				48
+			]
+		},
+		"VOCALS (BACKING)": {
+			"order": 3,
+			"visible": false,
+			"colour": [
+				230,
+				128,
+				48
+			]
+		},
+		"GUITAR": {
+			"order": 4,
+			"colour": [
+				55,
+				74,
+				228
+			]
+		},
+		"GUITAR SOLO": {
+			"order": 5,
+			"colour": [
+				55,
+				74,
+				228
+			]
+		},
+		"PIANO": {
+			"order": 6,
+			"colour": [
+				107,
+				163,
+				66
+			]
+		}
+	}
+}

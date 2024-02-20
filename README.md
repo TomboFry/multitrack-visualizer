@@ -1,25 +1,38 @@
 # Multitrack Visualizer
 
-A small tool that loads multiple audio files at once and simultaneously renders
-each of their waveforms to PNG.
+A small tool that visualizes music in two ways:
+
+* Loading up several WAV files at once and rendering their waveforms
+* Reading a MIDI file and rendering the note data
+
+The output is an MP4 file, which you'll need to mux with the original master audio.
 
 I plan on using this for [my YouTube channel](https://youtube.com/TomboFry),
 where I upload chiptune music. I figured it would be a good visualisation tool,
 and different from my usual screen capture of FL Studio.
 
-## Screenshot
+## Screenshots
 
 I've uploaded [a full-song to YouTube using this software](https://www.youtube.com/watch?v=9mGbqnYR_UI), so you can see what the final output looks like!
 
+### Waveform Output
+
 ![](./screenshot.png)
+
+### MIDI Output
+
+![](./screenshot-midi.png)
 
 ## Usage
 
 ```
 multitrack-visualizer.exe [OPTIONS]
 
+Either a song or midi JSON config file MUST be provided, along with the window config.
+
 Options:
-  -s, --song /path/to/song.json       JSON config file for all tracks, colours, and audio files (default: ./song.json)
+  -s, --song /path/to/song.json       JSON config file for all tracks, colours, and audio files (no default)
+  -m, --midi /path/to/midi.json       JSON config file for MIDI file visualization (no default)
   -w, --window /path/to/window.json   JSON config file for size and scaling of the output video (default: ./window.json)
   -h, --help                          Print this help
   -V, --version                       Print version
@@ -37,7 +50,8 @@ Options:
   * `use_alignment`: (optional) - Attempt to align the waveform on each frame.
     Non-tonal channels or low frequency audio might look better displayed when
     this is turned off. Defaults to `true`
-* `video_file_out` is a path name to the video that will be output.
+* `video_file_out` is a path name to the video file that will be output.
+* `use_gradients` (optional) - each channel's background can display a colour that subtly fades from top to bottom. Defaults to `true`
 
 ```json
 {
@@ -50,6 +64,39 @@ Options:
     }
   ],
   "video_file_out": "/path/to/output.mp4"
+}
+```
+
+### Midi.json
+
+* `midi_file` is a path name to a .MID file,
+* `duration_secs` (optional) - changes how much of the song to display on-screen at once, in seconds. Defaults to `5.0`
+* `video_file_out` is a path name to the video file that will be output.
+* `use_gradients` (optional) - each channel's background can display a colour that subtly fades from top to bottom. Defaults to `true`
+* `channels`, is an object, where each key is the name of a track within the MIDI file. Adding channels is optional, but will default the track to a black background and sort them in alphabetical order. Each sub-object contains the following properties:
+  * `order` (optional) - a number which is zero or above, used to rearrange the channels that appear on screen
+  * `visible` (optional) - hides the channel from the screen, if the MIDI contains extra channels you don't want to appear.
+  * `colour` (optional) - contains the Red, Green, and Blue colour values (0 - 255). Defaults to black, ie. `[0, 0, 0]`
+
+```json
+{
+  "midi_file": "/path/to/song.mid",
+  "duration_secs": 3,
+  "video_file_out": "/path/to/output.mp4",
+  "use_gradients": true,
+  "channels": {
+    "Piano": {
+      "colour": [ 107, 163, 66 ],
+      "order": 1
+    },
+    "Guitar": {
+      "colour": [ 55, 74, 228 ],
+      "order": 0
+    },
+    "SFX": {
+      "visible": false
+    }
+  }
 }
 ```
 

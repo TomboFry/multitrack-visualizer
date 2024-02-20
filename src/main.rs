@@ -1,3 +1,4 @@
+use crate::data::midi::MidiSong;
 use crate::data::{cli::Args, video::Encoding};
 use clap::Parser;
 use data::channel::SongError;
@@ -17,22 +18,24 @@ lazy_static! {
 	pub static ref SCREEN_FRAME_RATE: usize = WINDOW.frame_rate;
 }
 
-fn main() {
-	video_rs::init().expect("Could not initialise FFMPEG");
+fn generate_progressbar(total: u64) -> ProgressBar {
+	let pb = ProgressBar::new(total);
 
-	let cmd = Args::parse();
-
-	// Step 1: Set up project and encoder
-	let mut song = Song::load_from_file(&cmd.song);
-	let mut encoding = Encoding::new(&song);
-	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
-
-	let pb = ProgressBar::new(song.channels[0].play_time_samples_total);
 	pb.set_style(
 		ProgressStyle::with_template("[{eta_precise}]  [{wide_bar:.green/black}]  {percent}%  ")
 			.unwrap()
 			.progress_chars("#>-"),
 	);
+
+	pb
+}
+
+fn encode_wavs(cmd: &Args) {
+	// Step 1: Set up project and encoder
+	let mut song = Song::load_from_file(&cmd.song);
+	let mut encoding = Encoding::new(&song.video_file_out);
+	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
+	let pb = generate_progressbar(song.channels[0].play_time_samples_total);
 
 	// Step 2: Render waveforms
 	println!("\nStarting render");
@@ -55,5 +58,56 @@ fn main() {
 
 			break;
 		}
+	}
+}
+
+fn encode_midi(cmd: &Args) {
+	// Step 1: Set up project and encoder
+	let mut midi = MidiSong::load_from_file(&cmd.midi);
+	let mut encoding = Encoding::new(&midi.config.video_file_out);
+	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
+
+	let pb = generate_progressbar((midi.get_song_duration() * 1000.0) as u64);
+
+	// Step 2: Render waveforms
+	println!("\nStarting render");
+	loop {
+		let result = midi.draw(&mut frame, &mut encoding);
+
+		pb.set_position((midi.playhead_secs * 1000.0) as u64);
+
+		// `err` can either be the end of the song, or a genuine fault.
+		// Either way, stop execution.
+		if result.is_err() {
+			// Step 3: Flush MP4 to file
+			encoding.flush();
+			pb.finish();
+
+			match result.err().unwrap() {
+				SongError::End => println!("Finished rendering to {}", &midi.config.video_file_out),
+				SongError::Error(err) => println!("{:?}", err),
+			}
+
+			break;
+		}
+	}
+}
+
+fn main() {
+	video_rs::init().expect("Could not initialise FFMPEG");
+
+	let mut cmd = Args::parse();
+
+	if cmd.midi.is_empty() && cmd.song.is_empty() {
+		cmd.song = String::from("./song.json");
+		return encode_wavs(&cmd);
+	}
+
+	if !cmd.song.is_empty() {
+		return encode_wavs(&cmd);
+	}
+
+	if !cmd.midi.is_empty() {
+		encode_midi(&cmd)
 	}
 }

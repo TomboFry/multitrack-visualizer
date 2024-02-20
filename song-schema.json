@@ -1,5 +1,5 @@
 {
-	"$schema": "http://json-schema.org/schema",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"$id": "https://git.tombo.sh/tom/multitrack-visualizer/raw/branch/main/song-schema.json",
 	"title": "Song Schema",
 	"type": "object",

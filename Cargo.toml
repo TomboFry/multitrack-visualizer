@@ -18,3 +18,4 @@ ndarray = "0.15.6"
 fast_image_resize = "3.0.4"
 clap = { version = "4.5.1", features = [ "derive" ] }
 indicatif = "0.17.5"
+midly = "0.5"
