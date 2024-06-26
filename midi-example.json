@@ -1,6 +1,5 @@
 {
 	"midi_file": "midi-file.mid",
-	"duration_secs": 3,
 	"video_file_out": "./song/output.mp4",
 	"use_gradients": true,
 	"channels": {

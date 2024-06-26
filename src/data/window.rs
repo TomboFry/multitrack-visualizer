@@ -1,6 +1,7 @@
 use std::{fs::File, io::BufReader};
 use serde::Deserialize;
 use crate::Args;
+use super::defaults::default_five;
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Window {
@@ -8,6 +9,9 @@ pub struct Window {
 	pub height: u32,
 	pub scale: u32,
 	pub frame_rate: usize,
+	
+	#[serde(default = "default_five")]
+	pub duration_secs: f64,
 }
 
 const DEFAULT_169: Window = Window {
@@ -15,19 +19,23 @@ const DEFAULT_169: Window = Window {
 	height: 270,
 	scale: 4,
 	frame_rate: 60,
+	duration_secs: 5.0,
+};
 
 const DEFAULT_916: Window = Window {
 	width: 216,
 	height: 384,
 	scale: 5,
-	frame_rate: 60,
+	frame_rate: 30,
+	duration_secs: 3.0,
 };
 
 const DEFAULT_918: Window = Window {
 	width: 216,
 	height: 432,
 	scale: 5,
-	frame_rate: 60,
+	frame_rate: 30,
+	duration_secs: 3.0,
 };
 
 impl Window {

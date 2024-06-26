@@ -13,6 +13,7 @@ lazy_static! {
 	pub static ref SCREEN_HEIGHT: u32 = WINDOW.height;
 	pub static ref SCREEN_SCALE: u32 = WINDOW.scale;
 	pub static ref SCREEN_FRAME_RATE: usize = WINDOW.frame_rate;
+	pub static ref SCREEN_DURATION_SECS: f64 = WINDOW.duration_secs;
 }
 
 fn generate_progressbar(total: u64) -> ProgressBar {

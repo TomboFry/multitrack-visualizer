@@ -2,5 +2,6 @@
 	"width": 480,
 	"height": 270,
 	"scale": 4,
-	"frame_rate": 30
+	"frame_rate": 30,
+	"duration_secs": 5.0
 }

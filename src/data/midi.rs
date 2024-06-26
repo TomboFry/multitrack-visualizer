@@ -1,11 +1,11 @@
 use super::{
 	channel::SongError,
-	defaults::{default_five, default_output, default_true},
+	defaults::{default_output, default_true},
 	video::Encoding,
 };
 use crate::{
 	display::{draw, RGB},
-	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH,
+	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_DURATION_SECS
 };
 use image::RgbImage;
 use midly::{
@@ -82,9 +82,6 @@ pub struct MidiSongConfig {
 
 	pub channels: HashMap<String, MidiChannelConfig>,
 
-	#[serde(default = "default_five")]
-	pub duration_secs: f64,
-
 	#[serde(default = "default_output")]
 	pub video_file_out: String,
 
@@ -112,8 +109,8 @@ impl MidiSong {
 			ppq: MidiSong::get_ppq(smf),
 			tempo: 0,
 			duration_ticks: 0,
-			playhead_secs: -(config.duration_secs / 2.0),
-			seconds_per_frame: config.duration_secs,
+			playhead_secs: -(*SCREEN_DURATION_SECS / 2.0),
+			seconds_per_frame: *SCREEN_DURATION_SECS,
 			channels: HashMap::new(),
 			channels_vec: Vec::with_capacity(16),
 			config,
