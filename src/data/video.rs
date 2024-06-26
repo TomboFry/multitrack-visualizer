@@ -1,5 +1,8 @@
 use crate::{SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_SCALE, SCREEN_WIDTH};
-use fast_image_resize::{Resizer, ResizeOptions, ResizeAlg, PixelType, images::{Image, ImageRef}};
+use fast_image_resize::{
+	images::{Image, ImageRef},
+	PixelType, ResizeAlg, ResizeOptions, Resizer,
+};
 use image::RgbImage;
 use ndarray::Array3;
 use std::path::PathBuf;
@@ -36,12 +39,8 @@ impl Encoding {
 			return frame.as_raw().to_vec();
 		}
 
-		let src_image = ImageRef::new(
-			*SCREEN_WIDTH,
-			*SCREEN_HEIGHT,
-			frame,
-			PixelType::U8x3,
-		).unwrap();
+		let src_image =
+			ImageRef::new(*SCREEN_WIDTH, *SCREEN_HEIGHT, frame, PixelType::U8x3).unwrap();
 
 		let mut dst_image = Image::new(
 			*SCREEN_WIDTH * *SCREEN_SCALE,
@@ -65,7 +64,8 @@ impl Encoding {
 				3,
 			),
 			pixels,
-		).unwrap();
+		)
+		.unwrap();
 
 		self.encoder.encode(&frame, self.position).unwrap();
 		self.update_position();

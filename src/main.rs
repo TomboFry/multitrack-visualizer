@@ -1,8 +1,5 @@
-use crate::data::midi::MidiSong;
-use crate::data::{cli::Args, video::Encoding};
 use clap::Parser;
-use data::channel::SongError;
-use data::song::{Song, Window};
+use data::{channel::SongError, song::Song, window::Window, cli::Args, video::Encoding, midi::MidiSong};
 use image::RgbImage;
 use indicatif::{ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
@@ -11,7 +8,7 @@ mod data;
 mod display;
 
 lazy_static! {
-	pub static ref WINDOW: Window = Window::load_from_file(&Args::parse().window);
+	pub static ref WINDOW: Window = Window::load_from_args(&Args::parse());
 	pub static ref SCREEN_WIDTH: u32 = WINDOW.width;
 	pub static ref SCREEN_HEIGHT: u32 = WINDOW.height;
 	pub static ref SCREEN_SCALE: u32 = WINDOW.scale;

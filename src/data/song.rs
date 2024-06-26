@@ -9,29 +9,6 @@ use rayon::prelude::*;
 use serde::Deserialize;
 use std::{fs::File, io::BufReader};
 
-#[derive(Deserialize, Clone, Debug)]
-pub struct Window {
-	pub width: u32,
-	pub height: u32,
-	pub scale: u32,
-	pub frame_rate: usize,
-}
-
-impl Window {
-	pub fn load_from_file(window_path: &str) -> Self {
-		let file = File::open(window_path);
-		if file.is_err() {
-			panic!("Could not open window.json");
-		}
-		let file = file.unwrap();
-
-		let rdr = BufReader::new(file);
-		let song: Window = serde_json::from_reader(rdr).unwrap();
-
-		song
-	}
-}
-
 #[derive(Deserialize)]
 pub struct Song {
 	pub channels: Vec<Channel>,
