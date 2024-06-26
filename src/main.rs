@@ -65,14 +65,14 @@ fn encode_midi(cmd: &Args) {
 	let mut encoding = Encoding::new(&midi.config.video_file_out);
 	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
 
-	let pb = generate_progressbar((midi.get_song_duration() * 1000.0) as u64);
+	let pb = generate_progressbar(((midi.get_song_duration() + (*SCREEN_DURATION_SECS / 2.0)) * 1000.0) as u64);
 
 	// Step 2: Render waveforms
 	println!("\nStarting render");
 	loop {
 		let result = midi.draw(&mut frame, &mut encoding);
 
-		pb.set_position((midi.playhead_secs * 1000.0) as u64);
+		pb.set_position(((midi.playhead_secs + (*SCREEN_DURATION_SECS / 2.0)) * 1000.0) as u64);
 
 		// `err` can either be the end of the song, or a genuine fault.
 		// Either way, stop execution.
