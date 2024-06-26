@@ -50,8 +50,8 @@ pub fn text_colour(frame: &mut RgbImage, x: u32, y: u32, text: &str, colour: RGB
 }
 
 pub fn rect(frame: &mut RgbImage, x1: u32, y1: u32, x2: u32, y2: u32, colour: RGB) {
-	for x in x1..x2 {
-		for y in y1..y2 {
+	for y in y1..y2 {
+		for x in x1..x2 {
 			pixel(frame, x, y, colour);
 		}
 	}
