@@ -1,0 +1,59 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://git.tombo.sh/tom/multitrack-visualizer/raw/branch/main/midi-schema.json",
+	"title": "MIDI Config Schema",
+	"type": "object",
+	"properties": {
+		"channels": {
+			"type": "object",
+			"patternProperties": {
+				".+": {
+					"type": "object",
+					"properties": {
+						"order": {
+							"description": "The position this channel appears on-screen",
+							"type": "number",
+							"minimum": 0
+						},
+						"colour": {
+							"description": "Defines the red, green, and blue colour values used as the background for this channel",
+							"type": "array",
+							"items": {
+								"type": "number",
+								"minimum": 0,
+								"maximum": 255
+							},
+							"maxItems": 3,
+							"minItems": 3,
+							"default": [
+								0,
+								0,
+								0
+							]
+						},
+						"visible": {
+							"description": "This will remove the MIDI channel from the video, if you don't wish to use it.",
+							"type": "boolean",
+							"default": true
+						}
+					}
+				}
+			}
+		},
+		"midi_file": {
+			"type": "string"
+		},
+		"video_file_out": {
+			"type": "string",
+			"default": "./output.mp4"
+		},
+		"use_gradients": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"required": [
+		"video_file_out",
+		"midi_file"
+	]
+}

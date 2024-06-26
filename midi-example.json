@@ -1,4 +1,5 @@
 {
+	"$schema": "https://git.tombo.sh/tom/multitrack-visualizer/raw/branch/main/midi-schema.json",
 	"midi_file": "midi-file.mid",
 	"video_file_out": "./song/output.mp4",
 	"use_gradients": true,

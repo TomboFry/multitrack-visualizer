@@ -34,6 +34,7 @@ Options:
   -s, --song /path/to/song.json       JSON config file for all tracks, colours, and audio files (no default)
   -m, --midi /path/to/midi.json       JSON config file for MIDI file visualization (no default)
   -w, --window /path/to/window.json   JSON config file for size and scaling of the output video (default: ./window.json)
+  -p, --window-preset                 Preset window options: "16x9" (1920x1080), "9x16" (1080x1920), "9x18" (1080x2160)
   -h, --help                          Print this help
   -V, --version                       Print version
 ```
@@ -70,7 +71,6 @@ Options:
 ### Midi.json
 
 * `midi_file` is a path name to a .MID file,
-* `duration_secs` (optional) - changes how much of the song to display on-screen at once, in seconds. Defaults to `5.0`
 * `video_file_out` is a path name to the video file that will be output.
 * `use_gradients` (optional) - each channel's background can display a colour that subtly fades from top to bottom. Defaults to `true`
 * `channels`, is an object, where each key is the name of a track within the MIDI file. Adding channels is optional, but will default the track to a black background and sort them in alphabetical order. Each sub-object contains the following properties:
@@ -107,12 +107,15 @@ Options:
   * For example, the default is 480x270 at a scale of 4, which means the final
     output resolution is 1920x1080.
 * `frame_rate` the frame rate of the output video
+* `duration_secs` (optional) Changes how much of the song to display on-screen at
+  once, in seconds. Only used for MIDI renders. Defaults to `5.0`
 
 ```json
 {
   "width": 480,
   "height": 270,
   "scale": 4,
-  "frame_rate": 30
+  "frame_rate": 30,
+  "duration_secs": 5
 }
 ```
