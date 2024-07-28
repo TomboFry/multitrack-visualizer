@@ -1,5 +1,7 @@
 use clap::Parser;
-use data::{channel::SongError, song::Song, window::Window, cli::Args, video::Encoding, midi::MidiSong};
+use data::{
+	channel::SongError, cli::Args, midi::MidiSong, song::Song, video::Encoding, window::Window,
+};
 use image::RgbImage;
 use indicatif::{ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
@@ -65,7 +67,9 @@ fn encode_midi(cmd: &Args) {
 	let mut encoding = Encoding::new(&midi.config.video_file_out);
 	let mut frame = RgbImage::new(*SCREEN_WIDTH, *SCREEN_HEIGHT);
 
-	let pb = generate_progressbar(((midi.get_song_duration() + (*SCREEN_DURATION_SECS / 2.0)) * 1000.0) as u64);
+	let pb = generate_progressbar(
+		((midi.get_song_duration() + (*SCREEN_DURATION_SECS / 2.0)) * 1000.0) as u64,
+	);
 
 	// Step 2: Render waveforms
 	println!("\nStarting render");

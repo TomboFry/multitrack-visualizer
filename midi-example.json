@@ -3,6 +3,7 @@
 	"midi_file": "midi-file.mid",
 	"video_file_out": "./song/output.mp4",
 	"use_gradients": true,
+	"lyrics_file": "./lyrics-example.lrc",
 	"channels": {
 		"DRUMS": {
 			"order": 0,

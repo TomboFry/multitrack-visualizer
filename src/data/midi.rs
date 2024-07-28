@@ -1,11 +1,12 @@
 use super::{
 	channel::SongError,
 	defaults::{default_output, default_true},
+	lyrics::Lyrics,
 	video::Encoding,
 };
 use crate::{
-	display::{draw, RGB},
-	SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_DURATION_SECS
+	display::{draw, font::FONT_SEPARATION, RGB},
+	SCREEN_DURATION_SECS, SCREEN_FRAME_RATE, SCREEN_HEIGHT, SCREEN_WIDTH,
 };
 use image::RgbImage;
 use midly::{
@@ -87,6 +88,8 @@ pub struct MidiSongConfig {
 
 	#[serde(default = "default_true")]
 	pub use_gradients: bool,
+
+	pub lyrics_file: Option<String>,
 }
 
 #[derive(Debug)]
@@ -100,6 +103,7 @@ pub struct MidiSong {
 	pub config: MidiSongConfig,
 	pub channels: HashMap<usize, MidiChannel>,
 	pub channels_vec: Vec<MidiChannel>,
+	pub lyrics: Option<Lyrics>,
 }
 
 impl MidiSong {
@@ -113,6 +117,7 @@ impl MidiSong {
 			seconds_per_frame: *SCREEN_DURATION_SECS,
 			channels: HashMap::new(),
 			channels_vec: Vec::with_capacity(16),
+			lyrics: Lyrics::new(&config.lyrics_file),
 			config,
 		}
 	}
@@ -308,8 +313,21 @@ impl MidiSong {
 	}
 
 	pub fn draw(&mut self, frame: &mut RgbImage, encoding: &mut Encoding) -> Result<(), SongError> {
-		let channel_height = *SCREEN_HEIGHT / self.channels_vec.len() as u32;
+		let mut channel_height = *SCREEN_HEIGHT / self.channels_vec.len() as u32;
 		let channel_width = *SCREEN_WIDTH;
+
+		if let Some(lyrics) = &self.lyrics {
+			let y = *SCREEN_HEIGHT - 11;
+			channel_height = y / self.channels_vec.len() as u32;
+			draw::rect(frame, 0, y, *SCREEN_WIDTH, *SCREEN_HEIGHT, [0, 0, 0]);
+
+			if let Some(line) = lyrics.find_line(self.playhead_secs + (*SCREEN_DURATION_SECS / 2.0))
+			{
+				let x =
+					((*SCREEN_WIDTH - (line.len() as u32 * FONT_SEPARATION)) as f64 / 2.0) as u32;
+				draw::text(frame, x, y + 1, &line);
+			}
+		}
 
 		let x_min = 0;
 		let x_min_f = x_min as f64;

@@ -1,7 +1,7 @@
-use std::{fs::File, io::BufReader};
-use serde::Deserialize;
-use crate::Args;
 use super::defaults::default_five;
+use crate::Args;
+use serde::Deserialize;
+use std::{fs::File, io::BufReader};
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Window {
@@ -9,7 +9,7 @@ pub struct Window {
 	pub height: u32,
 	pub scale: u32,
 	pub frame_rate: usize,
-	
+
 	#[serde(default = "default_five")]
 	pub duration_secs: f64,
 }
