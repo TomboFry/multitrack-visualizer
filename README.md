@@ -5,15 +5,17 @@ A small tool that visualizes music in two ways:
 * Loading up several WAV files at once and rendering their waveforms
 * Reading a MIDI file and rendering the note data
 
-The output is an MP4 file, which you'll need to mux with the original master audio.
+The output is an MP4 file, which you'll need to mux with the original master
+audio.
 
-I plan on using this for [my YouTube channel](https://youtube.com/TomboFry),
+I plan on using this for [my YouTube channel],
 where I upload chiptune music. I figured it would be a good visualisation tool,
 and different from my usual screen capture of FL Studio.
 
 ## Screenshots
 
-I've uploaded [a full-song to YouTube using this software](https://www.youtube.com/watch?v=9mGbqnYR_UI), so you can see what the final output looks like!
+I've uploaded [a full-song to YouTube using this software], so you can see what
+the final output looks like!
 
 ### Waveform Output
 
@@ -52,7 +54,8 @@ Options:
     Non-tonal channels or low frequency audio might look better displayed when
     this is turned off. Defaults to `true`
 * `video_file_out` is a path name to the video file that will be output.
-* `use_gradients` (optional) - each channel's background can display a colour that subtly fades from top to bottom. Defaults to `true`
+* `use_gradients` (optional) - each channel's background can display a colour
+  that subtly fades from top to bottom. Defaults to `true`
 
 ```json
 {
@@ -72,11 +75,20 @@ Options:
 
 * `midi_file` is a path name to a .MID file,
 * `video_file_out` is a path name to the video file that will be output.
-* `use_gradients` (optional) - each channel's background can display a colour that subtly fades from top to bottom. Defaults to `true`
-* `channels`, is an object, where each key is the name of a track within the MIDI file. Adding channels is optional, but will default the track to a black background and sort them in alphabetical order. Each sub-object contains the following properties:
-  * `order` (optional) - a number which is zero or above, used to rearrange the channels that appear on screen
-  * `visible` (optional) - hides the channel from the screen, if the MIDI contains extra channels you don't want to appear.
-  * `colour` (optional) - contains the Red, Green, and Blue colour values (0 - 255). Defaults to black, ie. `[0, 0, 0]`
+* `use_gradients` (optional) - each channel's background can display a colour
+  that subtly fades from top to bottom. Defaults to `true`
+* `lyrics_file` (optional) - a path to an [LRC file], which will be displayed at
+  the bottom of the screen, along with the notes.
+* `channels`, is an object, where each key is the name of a track within the
+  MIDI file. Adding channels is optional, but will default the track to a black
+  background and sort them in alphabetical order. Each sub-object contains the
+  following properties:
+  * `order` (optional) - a number which is zero or above, used to rearrange the
+    channels that appear on screen
+  * `visible` (optional) - hides the channel from the screen, if the MIDI
+    contains extra channels you don't want to appear.
+  * `colour` (optional) - contains the Red, Green, and Blue colour values (0 -
+    255). Defaults to black, ie. `[0, 0, 0]`
 
 ```json
 {
@@ -84,6 +96,7 @@ Options:
   "duration_secs": 3,
   "video_file_out": "/path/to/output.mp4",
   "use_gradients": true,
+  "lyrics_file": "./path/to/lyrics.lrc",
   "channels": {
     "Piano": {
       "colour": [ 107, 163, 66 ],
@@ -119,3 +132,7 @@ Options:
   "duration_secs": 5
 }
 ```
+
+[LRC file]: https://en.wikipedia.org/wiki/LRC_(file_format)
+[my YouTube channel]: https://youtube.com/TomboFry
+[a full-song to YouTube using this software]: https://www.youtube.com/watch?v=9mGbqnYR_UI

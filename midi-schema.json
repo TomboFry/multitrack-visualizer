@@ -50,6 +50,9 @@
 		"use_gradients": {
 			"type": "boolean",
 			"default": false
+		},
+		"lyrics_file": {
+			"type": "string"
 		}
 	},
 	"required": [
