@@ -24,7 +24,7 @@ impl Lyrics {
 		let lines_raw = file.lines();
 
 		let mut lines: Vec<LyricLine> = vec![];
-		let re = regex::Regex::new(r"^\[(\d\d):(\d\d.\d\d)\](.*)$").unwrap();
+		let re = regex::Regex::new(r"^\[(\d\d):(\d\d.\d\d)\] ?(.*)$").unwrap();
 		for haystack in lines_raw {
 			if let Some(capture) = re.captures(haystack) {
 				let (_, [minute, second, lyric]) = capture.extract();
@@ -35,13 +35,10 @@ impl Lyrics {
 					let len = lines.len();
 					lines[len - 1].time_end = time;
 				}
-				if lyric.is_empty() {
-					continue;
-				}
 				lines.push(LyricLine {
 					time_start: time,
 					time_end: 999999.0,
-					text: lyric.trim().to_uppercase().to_owned(),
+					text: lyric.to_uppercase().to_owned(),
 				});
 			}
 		}
